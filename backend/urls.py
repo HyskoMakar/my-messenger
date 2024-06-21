@@ -1,18 +1,7 @@
-from flask import Flask
-from flask_restful import Api, Resource, reqparse
+from parser import parser
+from users_file import users
+from flask_restful import Resource
 import json
-
-app = Flask(__name__)
-api = Api()
-
-with open('users.json', encoding='utf8') as f:
-    users = json.load(f)
-
-parser = reqparse.RequestParser()
-parser.add_argument('id', type=str)
-parser.add_argument('name', type=str)
-parser.add_argument('password', type=str)
-parser.add_argument('date-birth', type=str)
 
 class Users(Resource):
     def get(self, id:str):
@@ -70,11 +59,15 @@ class Login(Resource):
                 lastKey = key
 
         return "Not registered", 401
+    
+class Reset_Password(Resource):
+    def post(self, id:str):
+        data = parser.parse_args()["password"]
 
-api.add_resource(Users, '/users/<string:id>')
-api.add_resource(Register, '/register')
-api.add_resource(Login, '/login')
-api.init_app(app)
+        users[id]["password"] = data
 
-if __name__ == '__main__':
-    app.run(debug=True, port=4000, host='127.0.0.1')
+        return users[id]
+    
+    def save(self):
+        with open('users.json', 'w', encoding='utf8') as f:
+            json.dump(users, f, ensure_ascii=False, indent=2)
