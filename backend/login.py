@@ -8,8 +8,8 @@ class Login(Resource):
         data = parser.parse_args()
 
         for key in users.keys():
-            if users[key]['name'] == data['name']:
-                if users[key]['password'] == data['password']:
+            if users[key]["e-mail"] == data["e-mail"]:
+                if users[key]["e-mail"] == data["e-mail"]:
                     return users[data["id"]], 200
                 else:
                     return "Wrong password", 403

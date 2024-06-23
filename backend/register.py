@@ -2,6 +2,9 @@ from parser import parser
 from users_file import users
 from flask_restful import Resource
 import json
+import re
+
+pat = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
 
 class Register(Resource):
     def post(self):
@@ -9,7 +12,7 @@ class Register(Resource):
 
         lastKey = 0
         for key in users.keys():
-            if users[key]['name'] == data['name']:
+            if users[key]["e-mail"] == data["e-mail"]:
                 return "Bad request", 400
             
             key = int(key)
@@ -18,10 +21,14 @@ class Register(Resource):
 
         newKey = str(lastKey + 1)
 
+        if not(re.match(pat, str(data["e-mail"]))):
+            return "Invalid Email", 400
+
         users[newKey] = {
             "name": data["name"],
             "password": data["password"],
             "dateOfBirth": data["dateOfBirth"],
+            "e-mail": data["e-mail"],
             "id": newKey
         }
 
