@@ -1,6 +1,9 @@
 from flask import Flask
 from flask_restful import Api, Resource
-from urls import *
+from users import *
+from register import *
+from login import *
+from reset_password import *
 
 app = Flask(__name__)
 api = Api()
