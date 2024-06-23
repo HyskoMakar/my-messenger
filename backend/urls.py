@@ -1,6 +1,7 @@
 from parser import parser
 from users_file import users
 from flask_restful import Resource
+from random import randint
 import json
 
 class Users(Resource):
@@ -36,6 +37,15 @@ class Register(Resource):
 
         newKey = str(lastKey + 1)
 
+        users[newKey] = {
+            "name": data["name"],
+            "password": data["password"],
+            "dateOfBirth": data["dateOfBirth"],
+            "id": newKey
+        }
+
+        self.save()
+
         return users[newKey]
     
     def save(self):
@@ -43,30 +53,24 @@ class Register(Resource):
             json.dump(users, f, ensure_ascii=False, indent=2)
 
 class Login(Resource):
-    def post(self, id:str):
+    def post(self):
         data = parser.parse_args()
 
-        lastKey = 0
         for key in users.keys():
             if users[key]['name'] == data['name']:
                 if users[key]['password'] == data['password']:
-                    return users[id]
+                    return users[data["id"]], 200
                 else:
                     return "Wrong password", 403
-            
-            key = int(key)
-            if key > lastKey:
-                lastKey = key
-
         return "Not registered", 401
     
 class Reset_Password(Resource):
-    def post(self, id:str):
-        data = parser.parse_args()["password"]
+    def post(self):
+        data = parser.parse_args()
 
-        users[id]["password"] = data
+        users[id]["password"] = data["password"]
 
-        return users[id]
+        return users[data["id"]]
     
     def save(self):
         with open('users.json', 'w', encoding='utf8') as f:
