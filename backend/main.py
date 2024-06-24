@@ -1,5 +1,5 @@
 from flask import Flask
-from flask_restful import Api, Resource
+from flask_restful import Api
 from users import *
 from register import *
 from login import *

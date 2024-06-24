@@ -3,14 +3,8 @@
     "name": "Makar Lashara",
     "password": "1q2w3e4l",
     "dateOfBirth": "03.04.2012",
-    "e-mail": "hysko.mm@gmai.com",
-    "id": "1"
-  },
-  "2": {
-    "name": "Makar Lashara",
-    "password": "1q2w3e4l",
-    "dateOfBirth": "03.04.2012",
     "e-mail": "hysko.mm@smartercontact.org.ua",
-    "id": "2"
+    "secret_key": "b'e3N0cihyZWFsX3RpbWUucmVhbFRpbWUpfQ=='",
+    "id": "1"
   }
 }
