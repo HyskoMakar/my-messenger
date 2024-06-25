@@ -4,8 +4,6 @@ from flask_restful import Resource
 import base64
 import json
 
-import real_time
-
 class Login(Resource):
     def post(self):
         data = parser.parse_args()
@@ -13,7 +11,7 @@ class Login(Resource):
         for key in users.keys():
             if users[key]["e-mail"] == data["e-mail"]:
                 if users[key]["e-mail"] == data["e-mail"]:
-                    secret_key = str(base64.b64encode(b'{str(real_time.realTime)}'))
+                    secret_key = str(base64.b64encode(b'{str(data[realTime])}'))
 
                     users[key]["secret_key"] = secret_key
 

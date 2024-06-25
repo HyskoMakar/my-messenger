@@ -6,8 +6,6 @@ import base64
 import json
 import re
 
-import real_time
-
 pat = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
 
 class Register(Resource):
@@ -28,7 +26,7 @@ class Register(Resource):
         if not(re.match(pat, str(data["e-mail"]))):
             return "Invalid Email", 400
         
-        secret_key = str(base64.b64encode(b'{str(real_time.realTime)}'))
+        secret_key = str(base64.b64encode(b'{str(data["realTime])}'))
 
         users[newKey] = {
             "name": data["name"],
