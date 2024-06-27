@@ -1,8 +1,20 @@
+from flask import make_response, request
 from parser import parser
-from users_file import users
 from flask_restful import Resource
-import base64
+
+from dotenv import load_dotenv, dotenv_values 
+
+import jwt
+from jwt.exceptions import InvalidSignatureError, ExpiredSignatureError
+
 import json
+
+import os
+
+with open('users.json', encoding='utf8') as f:
+    users = json.load(f)
+
+load_dotenv()
 
 class Login(Resource):
     def post(self):
@@ -10,18 +22,40 @@ class Login(Resource):
 
         for key in users.keys():
             if users[key]["e-mail"] == data["e-mail"]:
-                if users[key]["e-mail"] == data["e-mail"]:
-                    secret_key = str(base64.b64encode(b'{str(data[realTime])}'))
+                if users[key]["password"] == data["password"]:
+                    token = request.headers.get('token')
 
-                    users[key]["secret_key"] = secret_key
+                    secret = os.getenv('secret')
 
-                    self.save()
+                    if token != '':
+                        try:
+                            jwt.decode(
+                                token,
+                                key=secret, 
+                                algorithms=['HS256', ])
+                        except InvalidSignatureError:
+                            return 'Signature verification failed', 401
+                        
+                        header_data = jwt.get_unverified_header(token)
+                        jwt.decode(
+                            token, 
+                            key=secret, 
+                            algorithms=[header_data['alg'], ])
+                        try:
+                            pass
+                        except ExpiredSignatureError:
+                            return 'Signature was expired', 401
+                    else:
+                        token = jwt.encode(
+                            payload=payloadData,
+                            key=secret,
+                            algorithm='HS256'
+                        )
 
-                    return users[key], 200
+                    resp = make_response(users[key])
+                    resp.headers['token'] = token
+
+                    return resp
                 else:
                     return "Wrong password", 403
         return "Not registered", 401
-    
-    def save(self):
-        with open('users.json', 'w', encoding='utf8') as f:
-            json.dump(users, f, ensure_ascii=False, indent=2)

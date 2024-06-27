@@ -1,10 +1,16 @@
+from flask import Flask,  make_response
 from parser import parser
-from users_file import users
 from flask_restful import Resource
-from time import time
-import base64
+from dotenv import load_dotenv, dotenv_values 
 import json
+import jwt
 import re
+import os
+
+with open('users.json', encoding='utf8') as f:
+    users = json.load(f)
+
+load_dotenv()
 
 pat = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
 
@@ -23,23 +29,35 @@ class Register(Resource):
 
         newKey = str(lastKey + 1)
 
-        if not(re.match(pat, str(data["e-mail"]))):
-            return "Invalid Email", 400
-        
-        secret_key = str(base64.b64encode(b'{str(data["realTime])}'))
+        eMail = data["e-mail"]
 
-        users[newKey] = {
+        if not(re.match(pat, eMail)):
+            return "Invalid Email", 400
+
+        payloadData = {
             "name": data["name"],
             "password": data["password"],
             "dateOfBirth": data["dateOfBirth"],
             "e-mail": data["e-mail"],
-            "secret_key": secret_key,
             "id": newKey
         }
 
+        secret = os.getenv('secret')
+
+        token = jwt.encode(
+            payload=payloadData,
+            key=secret,
+            algorithm='HS256'
+        )
+
+        users[newKey] = payloadData
+
         self.save()
 
-        return users[newKey]
+        resp = make_response(users[newKey])
+        resp.headers['token'] = token
+
+        return resp
     
     def save(self):
         with open('users.json', 'w', encoding='utf8') as f:

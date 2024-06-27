@@ -1,5 +1,4 @@
 from parser import parser
-from users_file import users
 from flask_restful import Resource
 import json
 

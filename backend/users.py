@@ -1,8 +1,9 @@
 from parser import parser
-from users_file import users
 from flask_restful import Resource
 import json
 
+with open('users.json', encoding='utf8') as f:
+    users = json.load(f)
 class Users(Resource):
     def get(self, id:str):
         if id == '':
