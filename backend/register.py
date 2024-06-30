@@ -1,14 +1,12 @@
 from flask import Flask,  make_response
-from parser import parser
+from backend.parse import parser
 from flask_restful import Resource
 from dotenv import load_dotenv, dotenv_values 
+import datetime
 import json
 import jwt
 import re
 import os
-
-with open('users.json', encoding='utf8') as f:
-    users = json.load(f)
 
 load_dotenv()
 
@@ -16,11 +14,13 @@ pat = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
 
 class Register(Resource):
     def post(self):
+        users = self.loadUsers()
+
         data = parser.parse_args()
 
         lastKey = 0
         for key in users.keys():
-            if users[key]["e-mail"] == data["e-mail"]:
+            if users[key]["email"] == data["email"]:
                 return "Bad request", 400
             
             key = int(key)
@@ -29,36 +29,62 @@ class Register(Resource):
 
         newKey = str(lastKey + 1)
 
-        eMail = data["e-mail"]
+        eMail = data["email"]
 
         if not(re.match(pat, eMail)):
             return "Invalid Email", 400
-
-        payloadData = {
+        secret = os.getenv('secret')
+        
+        returnData = {
             "name": data["name"],
             "password": data["password"],
             "dateOfBirth": data["dateOfBirth"],
-            "e-mail": data["e-mail"],
+            "email": data["email"],
             "id": newKey
         }
 
-        secret = os.getenv('secret')
+        users[newKey] = returnData
 
+        payload = {
+            "exp": datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(minutes=10),
+            "sub": newKey,
+            "email": data['email'],
+            "password": data['password']
+        }
+                    
         token = jwt.encode(
-            payload=payloadData,
+            payload=payload,
             key=secret,
-            algorithm='HS256'
-        )
+            algorithm='HS256')
+                    
+        rpayload = {
+            "exp": datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(days=14),
+            "sub": newKey,
+            "email": data['email'],
+            "password": data['password']
+        }
+                    
+        rtoken = jwt.encode(
+            payload=rpayload,
+            key=secret,
+            algorithm='HS256')
 
-        users[newKey] = payloadData
+        self.save(users)
 
-        self.save()
+        returnData['token'] = token
+        returnData['rtoken'] = rtoken
 
-        resp = make_response(users[newKey])
-        resp.headers['token'] = token
+
+        resp = make_response(returnData)
 
         return resp
     
-    def save(self):
+    def save(self, users=dict):
         with open('users.json', 'w', encoding='utf8') as f:
             json.dump(users, f, ensure_ascii=False, indent=2)
+
+    def loadUsers(self):
+        with open('users.json', encoding='utf8') as f:
+            users = json.load(f)
+
+        return users

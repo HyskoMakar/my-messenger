@@ -1,23 +1,52 @@
-from parser import parser
+from backend.parse import parser
 from flask_restful import Resource
+from flask import request
+from dotenv import load_dotenv, dotenv_values 
+import datetime
 import json
+import jwt
+import os
 
-with open('users.json', encoding='utf8') as f:
-    users = json.load(f)
+load_dotenv()
 class Users(Resource):
-    def get(self, id:str):
-        if id == '':
-            return users
-        else:
-            return users[id]
+    def get(self):
+        users = self.loadUsers()
+
+        secret = os.getenv('secret')
+
+        token = request.headers.get('token')
+
+        try:
+            _data = jwt.decode(
+                token,
+                key=secret, 
+                leeway=datetime.timedelta(minutes=10),
+                algorithms=['HS256', ]
+            )
+        except:
+            return 'Invalid signature', 401
+
+        data = users[_data['sub']]
+
+        if _data['email'] == data['email'] and _data['password'] == data['password']:
+            return users[_data['sub']]
+        return '''It isn't your acccount!''', 401
     
-    def put(self, id:str):
+    def put(self):
+        users = self.loadUsers()
+
         users[id] = parser.parse_args()
         
-        self.save()
+        self.save(users)
         
         return users[id]
     
-    def save(self):
+    def save(self, users):
         with open('users.json', 'w', encoding='utf8') as f:
             json.dump(users, f, ensure_ascii=False, indent=2)
+
+    def loadUsers(self):
+        with open('users.json', encoding='utf8') as f:
+            users = json.load(f)
+
+        return users

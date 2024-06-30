@@ -1,4 +1,4 @@
-from parser import parser
+from backend.parse import parser
 from flask_restful import Resource
 import json
 
