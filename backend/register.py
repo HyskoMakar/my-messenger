@@ -1,5 +1,5 @@
 from flask import Flask,  make_response
-from backend.parse import parser
+from parse import parser
 from flask_restful import Resource
 from dotenv import load_dotenv, dotenv_values 
 import datetime
@@ -52,7 +52,7 @@ class Register(Resource):
             "password": data['password']
         }
                     
-        token = jwt.encode(
+        atoken = jwt.encode(
             payload=payload,
             key=secret,
             algorithm='HS256')
@@ -71,11 +71,11 @@ class Register(Resource):
 
         self.save(users)
 
-        returnData['token'] = token
-        returnData['rtoken'] = rtoken
+        returnData['atoken'] = atoken
 
 
         resp = make_response(returnData)
+        resp.set_cookie("rtoken", rtoken)
 
         return resp
     

@@ -1,4 +1,4 @@
-from backend.parse import parser
+from parse import parser
 from flask_restful import Resource
 from flask import request
 from dotenv import load_dotenv, dotenv_values 
@@ -14,11 +14,11 @@ class Users(Resource):
 
         secret = os.getenv('secret')
 
-        token = request.headers.get('token')
+        atoken = request.headers.get('atoken')
 
         try:
             _data = jwt.decode(
-                token,
+                atoken,
                 key=secret, 
                 leeway=datetime.timedelta(minutes=10),
                 algorithms=['HS256', ]

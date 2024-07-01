@@ -27,7 +27,7 @@ class Login(Resource):
                         "password": data['password']
                     }
                     
-                    token = jwt.encode(
+                    atoken = jwt.encode(
                         payload=payload,
                         key=secret,
                         algorithm='HS256')
@@ -46,10 +46,10 @@ class Login(Resource):
                     
                     returnData = users[key]
 
-                    returnData['token'] = token
-                    returnData['rtoken'] = rtoken
+                    returnData['atoken'] = atoken
 
                     resp = make_response(returnData)
+                    resp.set_cookie("rtoken", rtoken)
 
                     return resp
                 else:

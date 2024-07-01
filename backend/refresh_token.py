@@ -1,6 +1,6 @@
 import datetime
 from flask import make_response, request
-from backend.parse import parser
+from parse import parser
 from flask_restful import Resource
 
 from dotenv import load_dotenv, dotenv_values 
@@ -18,12 +18,12 @@ class Refresh_token(Resource):
     def post(self):
         users = self.loadUsers()
 
-        data = parser.parse_args()
+        data = request.cookies.get('rtoken')
 
         secret = os.getenv('secret')
 
         data = jwt.decode(
-            data['rtoken'],
+            data,
             key=secret, 
             leeway=datetime.timedelta(days=14),
             algorithms=['HS256', ]
@@ -59,9 +59,9 @@ class Refresh_token(Resource):
                     returnData = {}
 
                     returnData['token'] = token
-                    returnData['rtoken'] = rtoken
 
                     resp = make_response(returnData)
+                    resp.set_cookie('rtoken', rtoken)
 
                     return resp
                 else:
