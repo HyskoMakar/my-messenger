@@ -1,17 +1,11 @@
-import datetime
-from flask import make_response
-from parse import parser
-from flask_restful import Resource
-from dotenv import load_dotenv
-import jwt
-import json
-import os
+from start_code import *
 
 load_dotenv()
 
-class Login(Resource):
-    def post(self):
-        users = self.loadUsers()
+@app.route('/login', methods=['POST'])
+def login():
+    if request.method == 'POST':
+        users = loadUsers()
 
         data = parser.parse_args()
 
@@ -22,7 +16,7 @@ class Login(Resource):
 
                     payload = {
                         "exp": datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(minutes=10),
-                        "sub": users[key]['id'],
+                        "sub": key,
                         "email": data['email'],
                         "password": data['password']
                     }
@@ -34,7 +28,7 @@ class Login(Resource):
                     
                     payload = {
                         "exp": datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(days=14),
-                        "sub": users[key]['id'],
+                        "sub": key,
                         "email": data['email'],
                         "password": data['password']
                     }
@@ -47,6 +41,7 @@ class Login(Resource):
                     returnData = users[key]
 
                     returnData['atoken'] = atoken
+                    returnData['_id'] = ''
 
                     resp = make_response(returnData)
                     resp.set_cookie("rtoken", rtoken)
@@ -55,9 +50,3 @@ class Login(Resource):
                 else:
                     return "Wrong password", 403
         return "Not registered", 401
-    
-    def loadUsers(self):
-        with open('users.json', encoding='utf8') as f:
-            users = json.load(f)
-
-        return users

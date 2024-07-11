@@ -1,20 +1,13 @@
-from flask import Flask,  make_response
-from parse import parser
-from flask_restful import Resource
-from dotenv import load_dotenv, dotenv_values 
-import datetime
-import json
-import jwt
-import re
-import os
+from start_code import *
 
 load_dotenv()
 
 pat = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
 
-class Register(Resource):
-    def post(self):
-        users = self.loadUsers()
+@app.route('/register', methods=['POST'])
+def register():
+    if request.method == 'POST':
+        users = loadUsers()
 
         data = parser.parse_args()
 
@@ -39,11 +32,14 @@ class Register(Resource):
             "name": data["name"],
             "password": data["password"],
             "dateOfBirth": data["dateOfBirth"],
-            "email": data["email"],
-            "id": newKey
+            "email": data["email"]
         }
 
-        users[newKey] = returnData
+        insertData = returnData
+
+        collection.insert_one(insertData)
+
+        returnData['_id'] = ''
 
         payload = {
             "exp": datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(minutes=10),
@@ -51,7 +47,7 @@ class Register(Resource):
             "email": data['email'],
             "password": data['password']
         }
-                    
+
         atoken = jwt.encode(
             payload=payload,
             key=secret,
@@ -69,22 +65,9 @@ class Register(Resource):
             key=secret,
             algorithm='HS256')
 
-        self.save(users)
-
         returnData['atoken'] = atoken
-
 
         resp = make_response(returnData)
         resp.set_cookie("rtoken", rtoken)
 
         return resp
-    
-    def save(self, users=dict):
-        with open('users.json', 'w', encoding='utf8') as f:
-            json.dump(users, f, ensure_ascii=False, indent=2)
-
-    def loadUsers(self):
-        with open('users.json', encoding='utf8') as f:
-            users = json.load(f)
-
-        return users
